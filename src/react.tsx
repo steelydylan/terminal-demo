@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { TerminalDemo } from './terminal-demo.js'
-import type { GifRecordingOptions, TerminalDemoController, TerminalDemoOptions } from './types.js'
+import type { TerminalDemoController, TerminalDemoOptions } from './types.js'
 
 export type TerminalDemoProps = Omit<TerminalDemoOptions, 'scenarios'> & {
   scenarios: TerminalDemoOptions['scenarios']
@@ -28,9 +28,7 @@ export const TerminalDemoComponent = forwardRef<TerminalDemoRef, TerminalDemoPro
       reset: () => instanceRef.current?.reset(),
       isPlaying: () => instanceRef.current?.isPlaying() ?? false,
       destroy: () => instanceRef.current?.destroy(),
-      recordGif: (options?: GifRecordingOptions) =>
-        instanceRef.current?.recordGif(options) ?? Promise.reject(new Error('Not initialized')),
-      isRecording: () => instanceRef.current?.isRecording() ?? false
+      getTerminalElement: () => instanceRef.current?.getTerminalElement() ?? null
     }))
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally only run on mount
@@ -52,7 +50,6 @@ export const TerminalDemoComponent = forwardRef<TerminalDemoRef, TerminalDemoPro
 export { TerminalDemo } from './terminal-demo.js'
 export { darkTheme, lightTheme, resolveTheme } from './themes.js'
 export type {
-  GifRecordingOptions,
   Scenario,
   Step,
   TerminalDemoController,

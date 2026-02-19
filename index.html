@@ -117,6 +117,8 @@
 
   <script type="module">
     import { TerminalDemo } from './src/terminal-demo.ts'
+    import GIF from 'gif.js'
+    import html2canvas from 'html2canvas'
 
     const scenarios = [
       {
@@ -219,26 +221,73 @@
     document.getElementById('play-btn').addEventListener('click', () => demo.play())
     document.getElementById('reset-btn').addEventListener('click', () => demo.reset())
 
+    // GIF Recording
+    let isRecording = false
     const recordBtn = document.getElementById('record-btn')
+
+    async function recordGif() {
+      const terminal = demo.getTerminalElement()
+      if (!terminal) throw new Error('Terminal element not found')
+
+      const fps = 10
+      const scale = 1
+      const frameDelay = 1000 / fps
+
+      return new Promise((resolve, reject) => {
+        const gifEncoder = new GIF({
+          workers: 2,
+          quality: 1,
+          width: terminal.offsetWidth * scale,
+          height: terminal.offsetHeight * scale,
+          workerScript: '/gif.worker.js',
+          dither: false
+        })
+
+        gifEncoder.on('finished', (blob) => {
+          isRecording = false
+          resolve(blob)
+        })
+
+        isRecording = true
+        recordBtn.textContent = '⏺ Recording...'
+
+        const frameInterval = setInterval(async () => {
+          if (!isRecording) return
+          try {
+            const canvas = await html2canvas(terminal, {
+              backgroundColor: null,
+              scale,
+              logging: false
+            })
+            gifEncoder.addFrame(canvas, { delay: frameDelay, copy: true })
+          } catch (err) {
+            console.error('Failed to capture frame:', err)
+          }
+        }, frameDelay)
+
+        demo.play()
+          .then(() => new Promise(r => setTimeout(r, 500)))
+          .then(() => {
+            clearInterval(frameInterval)
+            isRecording = false
+            recordBtn.textContent = '⚙ Processing...'
+            gifEncoder.render()
+          })
+          .catch((err) => {
+            clearInterval(frameInterval)
+            isRecording = false
+            reject(err)
+          })
+      })
+    }
+
     recordBtn.addEventListener('click', async () => {
-      if (demo.isRecording()) return
+      if (isRecording) return
 
       recordBtn.classList.add('recording')
-      recordBtn.textContent = '⏺ Recording...'
 
       try {
-        const blob = await demo.recordGif({
-          fps: 10,
-          quality: 10,
-          workerScript: '/gif.worker.js',
-          onPhaseChange: (phase) => {
-            if (phase === 'recording') {
-              recordBtn.textContent = '⏺ Recording...'
-            } else if (phase === 'processing') {
-              recordBtn.textContent = '⚙ Processing...'
-            }
-          }
-        })
+        const blob = await recordGif()
 
         // Download the GIF
         const url = URL.createObjectURL(blob)

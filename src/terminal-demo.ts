@@ -1,14 +1,5 @@
-import GIF from 'gif.js'
-import html2canvas from 'html2canvas'
 import { resolveTheme } from './themes.js'
-import type {
-  GifRecordingOptions,
-  Scenario,
-  Step,
-  TerminalDemoController,
-  TerminalDemoOptions,
-  Theme
-} from './types.js'
+import type { Scenario, Step, TerminalDemoController, TerminalDemoOptions, Theme } from './types.js'
 import './terminal-demo.css'
 
 /**
@@ -33,20 +24,6 @@ export class TerminalDemo implements TerminalDemoController {
   // State
   private running = false
   private currentLineEl: HTMLElement | null = null
-
-  // GIF Recording
-  private recording = false
-  private gifEncoder: GIF | null = null
-  private recordingOptions: Omit<Required<GifRecordingOptions>, 'onPhaseChange'> & {
-    onPhaseChange?: (phase: 'recording' | 'processing' | 'done') => void
-  } = {
-    fps: 10,
-    quality: 10,
-    scale: 1,
-    workers: 2,
-    workerScript: '/gif.worker.js'
-  }
-  private frameInterval: ReturnType<typeof setInterval> | null = null
 
   constructor(container: HTMLElement, options: TerminalDemoOptions) {
     this.container = container
@@ -303,95 +280,10 @@ export class TerminalDemo implements TerminalDemoController {
 
   destroy(): void {
     this.running = false
-    this.stopRecording()
     this.container.innerHTML = ''
   }
 
-  isRecording(): boolean {
-    return this.recording
-  }
-
-  async recordGif(options?: GifRecordingOptions): Promise<Blob> {
-    if (this.recording) {
-      throw new Error('Already recording')
-    }
-
-    // Merge options
-    this.recordingOptions = {
-      fps: options?.fps ?? 10,
-      quality: options?.quality ?? 10,
-      scale: options?.scale ?? 1,
-      workers: options?.workers ?? 2,
-      workerScript: options?.workerScript ?? '/gif.worker.js',
-      onPhaseChange: options?.onPhaseChange
-    }
-
-    const terminal = this.container.querySelector('.td-terminal') as HTMLElement
-    if (!terminal) {
-      throw new Error('Terminal element not found')
-    }
-
-    return new Promise((resolve, reject) => {
-      // Initialize GIF encoder
-      // quality: 1 = best, 20 = fast. Lower is better color accuracy.
-      this.gifEncoder = new GIF({
-        workers: this.recordingOptions.workers,
-        quality: 1,
-        width: terminal.offsetWidth * this.recordingOptions.scale,
-        height: terminal.offsetHeight * this.recordingOptions.scale,
-        workerScript: this.recordingOptions.workerScript,
-        dither: false
-      })
-
-      this.gifEncoder.on('finished', (blob: Blob) => {
-        this.recording = false
-        this.recordingOptions.onPhaseChange?.('done')
-        resolve(blob)
-      })
-
-      this.recording = true
-      this.recordingOptions.onPhaseChange?.('recording')
-      const frameDelay = 1000 / this.recordingOptions.fps
-
-      // Start capturing frames
-      this.frameInterval = setInterval(async () => {
-        if (!this.recording || !this.gifEncoder) return
-
-        try {
-          const canvas = await html2canvas(terminal, {
-            backgroundColor: null,
-            scale: this.recordingOptions.scale,
-            logging: false
-          })
-          this.gifEncoder.addFrame(canvas, { delay: frameDelay, copy: true })
-        } catch (err) {
-          console.error('Failed to capture frame:', err)
-        }
-      }, frameDelay)
-
-      // Play and wait for completion
-      this.play()
-        .then(() => {
-          // Capture a few more frames at the end
-          return this.sleep(500)
-        })
-        .then(() => {
-          this.stopRecording()
-          this.recordingOptions.onPhaseChange?.('processing')
-          this.gifEncoder?.render()
-        })
-        .catch((err) => {
-          this.stopRecording()
-          reject(err)
-        })
-    })
-  }
-
-  private stopRecording(): void {
-    if (this.frameInterval) {
-      clearInterval(this.frameInterval)
-      this.frameInterval = null
-    }
-    this.recording = false
+  getTerminalElement(): HTMLElement | null {
+    return this.container.querySelector('.td-terminal')
   }
 }
