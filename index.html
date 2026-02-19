@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>terminal-demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+    .demo-info {
+      text-align: center;
+      color: #8b949e;
+      margin-bottom: 24px;
+    }
+    .demo-info h1 {
+      color: #f0f6fc;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .demo-info p {
+      font-size: 15px;
+    }
+    .controls {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .controls button {
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    #play-btn {
+      background: #7ee787;
+      color: #0d1117;
+    }
+    #play-btn:hover { filter: brightness(1.1); }
+    #reset-btn {
+      background: #21262d;
+      color: #c9d1d9;
+    }
+    #reset-btn:hover { filter: brightness(1.2); }
+    .scenarios {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    .scenario-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #8b949e;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .scenario-btn:hover {
+      background: #8b949e;
+    }
+    .scenario-btn.active {
+      background: #7ee787;
+      border-color: #7ee787;
+      color: #0d1117;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="demo-info">
+      <h1>terminal-demo</h1>
+      <p>Animated terminal demo component for showcasing CLI tools</p>
+    </div>
+    <div id="demo"></div>
+    <div class="scenarios" id="scenarios"></div>
+    <div class="controls">
+      <button id="play-btn">Play All</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { TerminalDemo } from './src/terminal-demo.ts'
+
+    const scenarios = [
+      {
+        name: 'gut commit',
+        description: 'AI-generated commit messages',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'gut commit', delay: 60 },
+          { type: 'wait', ms: 400 },
+          { type: 'output', text: '[gray]No staged changes, staging all changes...[/gray]' },
+          { type: 'spinner', text: 'Generating commit message...', duration: 1800 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold]Generated commit message:[/bold]' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '  [green]feat(auth): add secure API key storage[/green]' },
+          { type: 'output', text: '  [gray]- Implement keytar for macOS Keychain[/gray]' },
+          { type: 'output', text: '  [gray]- Add environment variable fallback[/gray]' },
+          { type: 'output', text: '' },
+          { type: 'question', text: 'Commit with this message? (y/N/e to edit) ' },
+          { type: 'wait', ms: 600 },
+          { type: 'answer', text: 'y' },
+          { type: 'output', text: '[green]✓ Committed successfully[/green]' },
+          { type: 'wait', ms: 1000 },
+        ]
+      },
+      {
+        name: 'gut pr',
+        description: 'Generate PR descriptions',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'gut pr --create', delay: 60 },
+          { type: 'wait', ms: 400 },
+          { type: 'spinner', text: 'Analyzing branch...', duration: 600 },
+          { type: 'spinner', text: 'Generating PR description...', duration: 1500 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold]📝 Generated PR:[/bold]' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[cyan]Title:[/cyan] [white]feat(auth): Add secure API key storage[/white]' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[cyan]Description:[/cyan]' },
+          { type: 'output', text: '[gray]──────────────────────────────────────────────────[/gray]' },
+          { type: 'output', text: '## Summary' },
+          { type: 'output', text: 'Implements secure API key storage using system keychain.' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '## Changes' },
+          { type: 'output', text: '- Added keytar integration' },
+          { type: 'output', text: '- Support for multiple AI providers' },
+          { type: 'output', text: '[gray]──────────────────────────────────────────────────[/gray]' },
+          { type: 'question', text: 'Create PR? (y/N) ' },
+          { type: 'wait', ms: 600 },
+          { type: 'answer', text: 'y' },
+          { type: 'spinner', text: 'Creating PR...', duration: 1200 },
+          { type: 'output', text: '[green]✓ PR created successfully![/green]' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[green]🔗 https://github.com/user/repo/pull/42[/green]' },
+          { type: 'wait', ms: 1000 },
+        ]
+      },
+      {
+        name: 'gut review',
+        description: 'AI code review',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'gut review', delay: 60 },
+          { type: 'wait', ms: 400 },
+          { type: 'spinner', text: 'Analyzing changes...', duration: 2000 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold]🔍 Code Review Results[/bold]' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[cyan]Overall:[/cyan] [green]Good[/green] - Well-structured code' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[yellow]⚠ src/lib/credentials.ts:45[/yellow]' },
+          { type: 'output', text: '  [gray]Consider adding error handling for keychain failures[/gray]' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[green]✓ src/commands/auth.ts[/green]' },
+          { type: 'output', text: '  [gray]Clean implementation of auth flow[/gray]' },
+          { type: 'wait', ms: 1500 },
+        ]
+      }
+    ]
+
+    const demo = new TerminalDemo(document.getElementById('demo'), {
+      title: 'gut-cli demo — zsh',
+      scenarios,
+      theme: 'dark',
+      windowStyle: 'macos',
+    })
+
+    // Create scenario buttons
+    const scenariosEl = document.getElementById('scenarios')
+    scenarios.forEach((scenario, index) => {
+      const btn = document.createElement('button')
+      btn.className = 'scenario-btn'
+      btn.textContent = scenario.name
+      btn.title = scenario.description ?? ''
+      btn.addEventListener('click', () => demo.playScenario(index))
+      scenariosEl.appendChild(btn)
+    })
+
+    document.getElementById('play-btn').addEventListener('click', () => demo.play())
+    document.getElementById('reset-btn').addEventListener('click', () => demo.reset())
+  </script>
+</body>
+</html>
