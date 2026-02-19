@@ -13,3 +13,4 @@ index.html
 node_modules/
 *.log
 .DS_Store
+public/gif.worker.js

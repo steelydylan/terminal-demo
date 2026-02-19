@@ -61,6 +61,18 @@
       color: #c9d1d9;
     }
     #reset-btn:hover { filter: brightness(1.2); }
+    #record-btn {
+      background: #f85149;
+      color: #ffffff;
+    }
+    #record-btn:hover { filter: brightness(1.1); }
+    #record-btn.recording {
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
     .scenarios {
       display: flex;
       gap: 8px;
@@ -99,6 +111,7 @@
     <div class="controls">
       <button id="play-btn">Play All</button>
       <button id="reset-btn">Reset</button>
+      <button id="record-btn">🔴 Record GIF</button>
     </div>
   </div>
 
@@ -205,6 +218,48 @@
 
     document.getElementById('play-btn').addEventListener('click', () => demo.play())
     document.getElementById('reset-btn').addEventListener('click', () => demo.reset())
+
+    const recordBtn = document.getElementById('record-btn')
+    recordBtn.addEventListener('click', async () => {
+      if (demo.isRecording()) return
+
+      recordBtn.classList.add('recording')
+      recordBtn.textContent = '⏺ Recording...'
+
+      try {
+        const blob = await demo.recordGif({
+          fps: 10,
+          quality: 10,
+          workerScript: '/gif.worker.js',
+          onPhaseChange: (phase) => {
+            if (phase === 'recording') {
+              recordBtn.textContent = '⏺ Recording...'
+            } else if (phase === 'processing') {
+              recordBtn.textContent = '⚙ Processing...'
+            }
+          }
+        })
+
+        // Download the GIF
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'terminal-demo.gif'
+        a.click()
+        URL.revokeObjectURL(url)
+
+        recordBtn.textContent = '✓ Downloaded!'
+        setTimeout(() => {
+          recordBtn.classList.remove('recording')
+          recordBtn.textContent = '🔴 Record GIF'
+        }, 2000)
+      } catch (err) {
+        console.error('Recording failed:', err)
+        alert('Recording failed: ' + err.message)
+        recordBtn.classList.remove('recording')
+        recordBtn.textContent = '🔴 Record GIF'
+      }
+    })
   </script>
 </body>
 </html>

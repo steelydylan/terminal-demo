@@ -71,6 +71,24 @@ export interface TerminalDemoOptions {
 }
 
 /**
+ * GIF recording options
+ */
+export interface GifRecordingOptions {
+  /** Frames per second (default: 10) */
+  fps?: number
+  /** GIF quality 1-30, lower is better (default: 10) */
+  quality?: number
+  /** Scale factor for output size (default: 1) */
+  scale?: number
+  /** Number of parallel workers (default: 2) */
+  workers?: number
+  /** Path to the GIF worker script (default: '/gif.worker.js') */
+  workerScript?: string
+  /** Callback when recording phase changes */
+  onPhaseChange?: (phase: 'recording' | 'processing' | 'done') => void
+}
+
+/**
  * Terminal demo controller interface
  */
 export interface TerminalDemoController {
@@ -86,4 +104,8 @@ export interface TerminalDemoController {
   isPlaying(): boolean
   /** Destroy and cleanup */
   destroy(): void
+  /** Record playback as GIF */
+  recordGif(options?: GifRecordingOptions): Promise<Blob>
+  /** Check if currently recording */
+  isRecording(): boolean
 }
