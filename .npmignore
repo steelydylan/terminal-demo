@@ -1,0 +1,15 @@
+# Source files
+src/
+
+# Config files
+.github/
+.gitignore
+biome.json
+tsconfig.json
+vite.config.ts
+index.html
+
+# Development files
+node_modules/
+*.log
+.DS_Store

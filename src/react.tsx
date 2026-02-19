@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useRef, forwardRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { TerminalDemo } from './terminal-demo.js'
 import type { TerminalDemoController, TerminalDemoOptions } from './types.js'
 
@@ -27,9 +27,10 @@ export const TerminalDemoComponent = forwardRef<TerminalDemoRef, TerminalDemoPro
       stop: () => instanceRef.current?.stop(),
       reset: () => instanceRef.current?.reset(),
       isPlaying: () => instanceRef.current?.isPlaying() ?? false,
-      destroy: () => instanceRef.current?.destroy(),
+      destroy: () => instanceRef.current?.destroy()
     }))
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally only run on mount
     useEffect(() => {
       if (!containerRef.current) return
 
@@ -39,8 +40,6 @@ export const TerminalDemoComponent = forwardRef<TerminalDemoRef, TerminalDemoPro
         instanceRef.current?.destroy()
         instanceRef.current = null
       }
-    // We intentionally only run this on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return <div ref={containerRef} className={className} style={style} />
@@ -54,5 +53,5 @@ export type {
   Step,
   TerminalDemoController,
   TerminalDemoOptions,
-  Theme,
+  Theme
 } from './types.js'

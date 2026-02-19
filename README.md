@@ -1,15 +1,19 @@
 # terminal-demo
 
-Animated terminal demo component for showcasing CLI tools. Works with vanilla JavaScript and React.
+Animated terminal demo component for showcasing CLI tools. Perfect for landing pages, documentation, and product demos.
 
 ## Features
 
-- Animated typing, spinners, and colored output
-- Scenario-based playback
-- Multiple themes (dark/light) and window styles (macOS/Windows/Linux)
-- Works with any framework or vanilla JS
-- React component included
+- Realistic terminal typing animation
+- Multiple scenarios support
+- Customizable themes (dark/light)
+- macOS-style window chrome
+- Spinner animations
+- Color-coded output
+- External playback control
+- React component with ref support
 - TypeScript support
+- Zero dependencies (vanilla JS)
 
 ## Installation
 
@@ -21,51 +25,71 @@ npm install terminal-demo
 
 ### Vanilla JavaScript
 
-```html
-<div id="demo"></div>
+```js
+import { TerminalDemo } from 'terminal-demo'
+import 'terminal-demo/style.css'
 
-<script type="module">
-  import { TerminalDemo } from 'terminal-demo'
-
-  new TerminalDemo(document.getElementById('demo'), {
-    title: 'my-cli demo',
-    scenarios: [
-      {
-        name: 'Install',
-        steps: [
-          { type: 'prompt' },
-          { type: 'command', text: 'npm install my-cli' },
-          { type: 'spinner', text: 'Installing...', duration: 2000 },
-          { type: 'output', text: '[green]✓ Installed successfully[/green]' },
-        ]
-      }
+const scenarios = [
+  {
+    name: 'hello',
+    description: 'Hello world example',
+    steps: [
+      { type: 'prompt' },
+      { type: 'command', text: 'echo "Hello, World!"', delay: 60 },
+      { type: 'output', text: 'Hello, World!' },
+      { type: 'wait', ms: 1000 },
     ]
-  })
-</script>
+  }
+]
+
+const demo = new TerminalDemo(document.getElementById('terminal'), {
+  title: 'my-cli — zsh',
+  scenarios,
+  theme: 'dark',
+  windowStyle: 'macos',
+})
+
+// Control playback with your own buttons
+document.getElementById('play-btn').onclick = () => demo.play()
+document.getElementById('reset-btn').onclick = () => demo.reset()
+
+// Play a specific scenario
+document.getElementById('scenario-1').onclick = () => demo.playScenario(0)
 ```
 
 ### React
 
 ```tsx
-import { TerminalDemoComponent } from 'terminal-demo/react'
+import { useRef } from 'react'
+import { TerminalDemoComponent, TerminalDemoRef } from 'terminal-demo/react'
+import 'terminal-demo/style.css'
 
 function App() {
+  const demoRef = useRef<TerminalDemoRef>(null)
+
+  const scenarios = [
+    {
+      name: 'hello',
+      steps: [
+        { type: 'prompt' },
+        { type: 'command', text: 'echo "Hello!"', delay: 60 },
+        { type: 'output', text: 'Hello!' },
+      ]
+    }
+  ]
+
   return (
-    <TerminalDemoComponent
-      title="my-cli demo"
-      scenarios={[
-        {
-          name: 'Install',
-          steps: [
-            { type: 'prompt' },
-            { type: 'command', text: 'npm install my-cli' },
-            { type: 'spinner', text: 'Installing...', duration: 2000 },
-            { type: 'output', text: '[green]✓ Installed successfully[/green]' },
-          ]
-        }
-      ]}
-      autoPlay
-    />
+    <div>
+      <TerminalDemoComponent
+        ref={demoRef}
+        title="my-cli — zsh"
+        scenarios={scenarios}
+        theme="dark"
+      />
+      <button onClick={() => demoRef.current?.play()}>Play All</button>
+      <button onClick={() => demoRef.current?.playScenario(0)}>Play Scenario 1</button>
+      <button onClick={() => demoRef.current?.reset()}>Reset</button>
+    </div>
   )
 }
 ```
@@ -75,80 +99,157 @@ function App() {
 | Type | Description | Properties |
 |------|-------------|------------|
 | `prompt` | Show command prompt | - |
-| `command` | Type a command | `text`, `delay?` |
+| `command` | Type a command | `text`, `delay?` (ms per char, default: 60) |
 | `output` | Display output line | `text`, `className?` |
-| `spinner` | Show loading spinner | `text`, `duration` |
+| `spinner` | Show loading spinner | `text`, `duration` (ms) |
 | `wait` | Pause execution | `ms` |
-| `question` | Show interactive prompt | `text` |
+| `question` | Show interactive question | `text` |
 | `answer` | Show user's answer | `text` |
 
-## Color Tags
+## Text Formatting
 
 Use color tags in output text:
 
 ```js
 { type: 'output', text: '[green]Success![/green]' }
 { type: 'output', text: '[red]Error:[/red] Something went wrong' }
-{ type: 'output', text: '[bold][cyan]Title[/cyan][/bold]' }
+{ type: 'output', text: '[bold]Important[/bold] message' }
+{ type: 'output', text: '[cyan]Info:[/cyan] [gray]Some details[/gray]' }
 ```
 
-Available colors: `gray`, `green`, `cyan`, `yellow`, `red`, `purple`, `white`, `bold`
+Available tags: `gray`, `green`, `cyan`, `yellow`, `red`, `purple`, `white`, `bold`
 
 ## Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `title` | `string` | `'Terminal Demo'` | Title in terminal header |
+| `title` | `string` | `'Terminal Demo'` | Window title |
+| `promptText` | `string` | `'~'` | Prompt directory |
+| `promptSymbol` | `string` | `'❯'` | Prompt symbol |
 | `scenarios` | `Scenario[]` | required | Array of scenarios |
 | `theme` | `'dark' \| 'light' \| Theme` | `'dark'` | Color theme |
-| `windowStyle` | `'macos' \| 'windows' \| 'linux'` | `'macos'` | Window button style |
-| `promptText` | `string` | `'~'` | Prompt path text |
-| `promptSymbol` | `string` | `'❯'` | Prompt symbol |
-| `autoPlay` | `boolean` | `false` | Auto-play on mount |
+| `windowStyle` | `'macos'` | `'macos'` | Window chrome style |
+| `autoPlay` | `boolean` | `false` | Start playing on mount |
 | `loop` | `boolean` | `false` | Loop playback |
 | `speed` | `number` | `1` | Playback speed multiplier |
-| `showScenarioSelector` | `boolean` | `true` | Show scenario buttons |
-| `showProgress` | `boolean` | `true` | Show progress bar |
-| `onComplete` | `() => void` | - | Called when playback ends |
-| `onScenarioChange` | `(index, scenario) => void` | - | Called on scenario change |
+| `onComplete` | `() => void` | - | Callback when playback ends |
+| `onScenarioChange` | `(index, scenario) => void` | - | Callback when scenario changes |
 
 ## Controller Methods
 
-```ts
-const demo = new TerminalDemo(el, options)
+| Method | Description |
+|--------|-------------|
+| `play()` | Play all scenarios |
+| `playScenario(index)` | Play a specific scenario by index |
+| `stop()` | Stop current playback |
+| `reset()` | Reset to initial state |
+| `isPlaying()` | Check if currently playing |
+| `destroy()` | Cleanup and remove |
 
-demo.play()              // Play all scenarios
-demo.playScenario(0)     // Play specific scenario
-demo.stop()              // Stop playback
-demo.reset()             // Reset to initial state
-demo.isPlaying()         // Check if playing
-demo.destroy()           // Cleanup
+## Custom Themes
+
+```js
+const tokyoNight = {
+  background: '#1a1b26',
+  foreground: '#a9b1d6',
+  headerBackground: '#24283b',
+  cursor: '#7aa2f7',
+  prompt: '#565f89',
+  buttonClose: '#f7768e',
+  buttonMinimize: '#e0af68',
+  buttonMaximize: '#9ece6a',
+  gray: '#565f89',
+  green: '#9ece6a',
+  cyan: '#7dcfff',
+  yellow: '#e0af68',
+  red: '#f7768e',
+  purple: '#bb9af7',
+  white: '#c0caf5',
+}
+
+new TerminalDemo(element, {
+  scenarios,
+  theme: tokyoNight,
+})
 ```
 
-## Custom Theme
+## CDN Usage
 
-```ts
-new TerminalDemo(el, {
-  theme: {
-    background: '#1e1e1e',
-    foreground: '#d4d4d4',
-    prompt: '#6a9955',
-    command: '#d4d4d4',
-    cursor: '#aeafad',
-    headerBackground: '#323233',
-    buttonClose: '#f14c4c',
-    buttonMinimize: '#cca700',
-    buttonMaximize: '#23d18b',
-    gray: '#808080',
-    green: '#6a9955',
-    cyan: '#4ec9b0',
-    yellow: '#dcdcaa',
-    red: '#f14c4c',
-    purple: '#c586c0',
-    white: '#d4d4d4',
-  },
-  // ...
-})
+No build step required! Use with [esm.sh](https://esm.sh) and import maps:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://esm.sh/terminal-demo/dist/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "terminal-demo": "https://esm.sh/terminal-demo"
+      }
+    }
+  </script>
+  <style>
+    body { padding: 40px; background: #1a1a2e; }
+    .controls { margin-top: 16px; display: flex; gap: 8px; justify-content: center; }
+    .controls button { padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="demo"></div>
+  <div class="controls">
+    <button id="play">Play All</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="controls" id="scenarios"></div>
+
+  <script type="module">
+    import { TerminalDemo } from 'terminal-demo'
+
+    const scenarios = [
+      {
+        name: 'install',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'npm install my-cli', delay: 50 },
+          { type: 'spinner', text: 'Installing...', duration: 1500 },
+          { type: 'output', text: '[green]✓ Installed successfully[/green]' },
+        ]
+      },
+      {
+        name: 'run',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'my-cli --help', delay: 50 },
+          { type: 'output', text: '[bold]my-cli[/bold] - A CLI tool' },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[cyan]Commands:[/cyan]' },
+          { type: 'output', text: '  init     Initialize project' },
+          { type: 'output', text: '  build    Build for production' },
+        ]
+      }
+    ]
+
+    const demo = new TerminalDemo(document.getElementById('demo'), {
+      title: 'my-cli — zsh',
+      scenarios,
+    })
+
+    // Wire up controls
+    document.getElementById('play').onclick = () => demo.play()
+    document.getElementById('reset').onclick = () => demo.reset()
+
+    // Create scenario buttons
+    const scenariosEl = document.getElementById('scenarios')
+    scenarios.forEach((s, i) => {
+      const btn = document.createElement('button')
+      btn.textContent = s.name
+      btn.onclick = () => demo.playScenario(i)
+      scenariosEl.appendChild(btn)
+    })
+  </script>
+</body>
+</html>
 ```
 
 ## License

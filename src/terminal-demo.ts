@@ -1,11 +1,5 @@
 import { resolveTheme } from './themes.js'
-import type {
-  Scenario,
-  Step,
-  TerminalDemoController,
-  TerminalDemoOptions,
-  Theme,
-} from './types.js'
+import type { Scenario, Step, TerminalDemoController, TerminalDemoOptions, Theme } from './types.js'
 import './terminal-demo.css'
 
 /**
@@ -13,7 +7,12 @@ import './terminal-demo.css'
  */
 export class TerminalDemo implements TerminalDemoController {
   private container: HTMLElement
-  private options: Required<Omit<TerminalDemoOptions, 'onComplete' | 'onScenarioChange' | 'showScenarioSelector' | 'showProgress'>> & {
+  private options: Required<
+    Omit<
+      TerminalDemoOptions,
+      'onComplete' | 'onScenarioChange' | 'showScenarioSelector' | 'showProgress'
+    >
+  > & {
     onComplete?: () => void
     onScenarioChange?: (index: number, scenario: Scenario) => void
   }
@@ -39,7 +38,7 @@ export class TerminalDemo implements TerminalDemoController {
       loop: options.loop ?? false,
       speed: options.speed ?? 1,
       onComplete: options.onComplete,
-      onScenarioChange: options.onScenarioChange,
+      onScenarioChange: options.onScenarioChange
     }
     this.theme = resolveTheme(this.options.theme)
 
@@ -122,7 +121,7 @@ export class TerminalDemo implements TerminalDemoController {
           '<span class="td-cursor"></span>',
           ''
         )
-        this.currentLineEl.innerHTML += char + '<span class="td-cursor"></span>'
+        this.currentLineEl.innerHTML += `${char}<span class="td-cursor"></span>`
       }
       await this.sleep(delay)
     }
@@ -166,7 +165,6 @@ export class TerminalDemo implements TerminalDemoController {
     }
     await this.sleep(100)
   }
-
 
   private scrollToBottom(): void {
     if (this.bodyEl) {

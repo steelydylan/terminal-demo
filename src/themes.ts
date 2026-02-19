@@ -16,7 +16,7 @@ export const darkTheme: Theme = {
   yellow: '#e3b341',
   red: '#f85149',
   purple: '#d2a8ff',
-  white: '#f0f6fc',
+  white: '#f0f6fc'
 }
 
 export const lightTheme: Theme = {
@@ -35,7 +35,7 @@ export const lightTheme: Theme = {
   yellow: '#9a6700',
   red: '#cf222e',
   purple: '#8250df',
-  white: '#24292f',
+  white: '#24292f'
 }
 
 export function resolveTheme(theme: 'dark' | 'light' | Theme | undefined): Theme {

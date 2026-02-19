@@ -5,5 +5,5 @@ export type {
   Step,
   TerminalDemoController,
   TerminalDemoOptions,
-  Theme,
+  Theme
 } from './types.js'

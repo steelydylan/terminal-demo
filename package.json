@@ -24,8 +24,11 @@
     "dev": "vite",
     "build": "vite build && tsc",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "lint": "biome check src",
-    "format": "biome format --write src"
+    "lint:fix": "biome check src --write",
+    "format": "biome format --write src",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "terminal",
@@ -35,10 +38,21 @@
     "react",
     "component"
   ],
-  "author": "",
+  "author": "godai",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steelydylan/terminal-demo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steelydylan/terminal-demo/issues"
+  },
+  "homepage": "https://github.com/steelydylan/terminal-demo#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.4.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "react": "^19.0.0",
