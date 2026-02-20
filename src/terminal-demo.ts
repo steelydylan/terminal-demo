@@ -205,6 +205,13 @@ export class TerminalDemo implements TerminalDemoController {
       optionLines.push(line)
     }
 
+    // Initialize options display first
+    this.updateSelectOptions(optionLines, options, 0)
+
+    // Wait for DOM to render, then scroll to show all options
+    await new Promise((r) => requestAnimationFrame(r))
+    this.scrollToBottom()
+
     // Animate selection
     const totalSteps = Math.max(3, Math.abs(selected) + 2)
     const stepDuration = duration / totalSteps
@@ -251,10 +258,17 @@ export class TerminalDemo implements TerminalDemoController {
       optionLines.push(line)
     }
 
+    // Initialize options display first
+    const checked = new Set<number>()
+    this.updateMultiselectOptions(optionLines, options, 0, checked)
+
+    // Wait for DOM to render, then scroll to show all options
+    await new Promise((r) => requestAnimationFrame(r))
+    this.scrollToBottom()
+
     // Animate: move through options and toggle selected ones
     const stepDuration = duration / (options.length + selected.length + 1)
     let current = 0
-    const checked = new Set<number>()
 
     for (let i = 0; i < options.length; i++) {
       if (!this.running) break
