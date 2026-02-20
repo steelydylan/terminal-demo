@@ -12,6 +12,9 @@ Animated terminal demo component for showcasing CLI tools. Perfect for landing p
 - macOS-style window chrome
 - Spinner animations
 - Color-coded output
+- **Interactive select menus** (single/multi-select)
+- **Progress bar animations**
+- **Pause/Resume playback**
 - External playback control
 - React component with ref support
 - TypeScript support
@@ -142,6 +145,9 @@ const scenarios = parseScenarioText(text)
 | `[wait:ms]` | Pause | `[wait:500]` |
 | `? text` | Question prompt | `? Continue? (y/N)` |
 | `: text` | User answer | `: y` |
+| `[select:ms] q \| opts \| idx` | Single select menu | `[select:1500] Choose: \| A, B, C \| 1` |
+| `[multiselect:ms] q \| opts \| idxs` | Multi select menu | `[multiselect:2000] Pick: \| X, Y, Z \| 0,2` |
+| `[progress:ms:percent] text` | Progress bar | `[progress:2000:100] Installing...` |
 
 The first line after `# name` (if not a command) becomes the scenario description.
 
@@ -165,6 +171,9 @@ console.log(text)
 | `wait` | Pause execution | `ms` |
 | `question` | Show interactive question | `text` |
 | `answer` | Show user's answer | `text` |
+| `select` | Single-choice menu | `question`, `options[]`, `selected`, `duration?` |
+| `multiselect` | Multi-choice menu | `question`, `options[]`, `selected[]`, `duration?` |
+| `progress` | Animated progress bar | `text`, `duration`, `percent?` (default: 100) |
 
 ## Text Formatting
 
@@ -203,7 +212,10 @@ Available tags: `gray`, `green`, `cyan`, `yellow`, `red`, `purple`, `white`, `bo
 | `playScenario(index)` | Play a specific scenario by index |
 | `stop()` | Stop current playback |
 | `reset()` | Reset to initial state |
+| `pause()` | Pause playback |
+| `resume()` | Resume playback |
 | `isPlaying()` | Check if currently playing |
+| `isPaused()` | Check if currently paused |
 | `destroy()` | Cleanup and remove |
 
 ## Custom Themes

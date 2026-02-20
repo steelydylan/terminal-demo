@@ -14,6 +14,9 @@ import type { Scenario, Step } from './types.js'
  * : answer text         → type: answer
  * [spinner:ms] text     → type: spinner
  * [wait:ms]             → type: wait
+ * [select:ms] question | opt1, opt2, opt3 | selected  → type: select
+ * [multiselect:ms] question | opt1, opt2 | 0,1        → type: multiselect
+ * [progress:ms:percent] text                          → type: progress
  * ---                   → type: prompt
  * ```
  *
@@ -169,6 +172,43 @@ function parseLine(line: string): Step | null {
     }
   }
 
+  // Select: [select:ms] question | opt1, opt2 | selected
+  const selectMatch = line.match(/^\[select:(\d+)\]\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d+)$/)
+  if (selectMatch) {
+    return {
+      type: 'select',
+      question: selectMatch[2],
+      options: selectMatch[3].split(',').map((s) => s.trim()),
+      selected: parseInt(selectMatch[4], 10),
+      duration: parseInt(selectMatch[1], 10)
+    }
+  }
+
+  // Multiselect: [multiselect:ms] question | opt1, opt2 | 0,1,2
+  const multiselectMatch = line.match(
+    /^\[multiselect:(\d+)\]\s*(.+?)\s*\|\s*(.+?)\s*\|\s*([\d,]+)$/
+  )
+  if (multiselectMatch) {
+    return {
+      type: 'multiselect',
+      question: multiselectMatch[2],
+      options: multiselectMatch[3].split(',').map((s) => s.trim()),
+      selected: multiselectMatch[4].split(',').map((s) => parseInt(s.trim(), 10)),
+      duration: parseInt(multiselectMatch[1], 10)
+    }
+  }
+
+  // Progress: [progress:ms] text or [progress:ms:percent] text
+  const progressMatch = line.match(/^\[progress:(\d+)(?::(\d+))?\]\s*(.*)$/)
+  if (progressMatch) {
+    return {
+      type: 'progress',
+      text: progressMatch[3],
+      duration: parseInt(progressMatch[1], 10),
+      percent: progressMatch[2] ? parseInt(progressMatch[2], 10) : 100
+    }
+  }
+
   // If line doesn't match any pattern, treat as output
   if (line.length > 0) {
     return {
@@ -219,6 +259,19 @@ export function stringifyScenarios(scenarios: Scenario[]): string {
           break
         case 'wait':
           lines.push(`[wait:${step.ms}]`)
+          break
+        case 'select':
+          lines.push(
+            `[select:${step.duration ?? 1500}] ${step.question} | ${step.options.join(', ')} | ${step.selected}`
+          )
+          break
+        case 'multiselect':
+          lines.push(
+            `[multiselect:${step.duration ?? 2000}] ${step.question} | ${step.options.join(', ')} | ${step.selected.join(',')}`
+          )
+          break
+        case 'progress':
+          lines.push(`[progress:${step.duration}:${step.percent ?? 100}] ${step.text}`)
           break
       }
     }

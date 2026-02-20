@@ -336,6 +336,9 @@ $ your-command
 [wait:400]
 > [green]Output text[/green]
 [spinner:1500] Loading...
+[select:1500] Choose: | A, B, C | 1
+[multiselect:2000] Select: | X, Y, Z | 0,2
+[progress:2000:100] Installing...
 ? Question? (y/N)
 : y
 > Done!"></textarea>
@@ -386,6 +389,9 @@ $ your-command
           <tr><td>[wait:ms]</td><td>Pause</td></tr>
           <tr><td>? text</td><td>Question</td></tr>
           <tr><td>: text</td><td>Answer</td></tr>
+          <tr><td>[select:ms] q | opts | idx</td><td>Single select menu</td></tr>
+          <tr><td>[multiselect:ms] q | opts | idxs</td><td>Multi select menu</td></tr>
+          <tr><td>[progress:ms:pct] text</td><td>Progress bar</td></tr>
         </table>
         <p style="margin-top: 16px; color: #8b949e; font-size: 13px;">
           Color tags: [green], [red], [cyan], [yellow], [gray], [purple], [white], [bold]
@@ -464,7 +470,27 @@ $[delay:40] gut review
 >
 > [green]✓ src/commands/auth.ts[/green]
 >   [gray]Clean implementation of auth flow[/gray]
-[wait:1500]`
+[wait:1500]
+
+# gut init
+Interactive project setup
+
+---
+$ gut init
+[wait:400]
+>
+> [bold]🚀 Initialize gut-cli[/bold]
+>
+[select:1500] Select AI provider: | OpenAI, Anthropic, Google AI, Local LLM | 1
+[wait:300]
+[multiselect:2500] Select features: | Auto-commit, PR generation, Code review, Branch naming | 0,1,2
+[wait:300]
+>
+[progress:2000:100] Installing dependencies...
+>
+> [green]✓ gut-cli initialized successfully![/green]
+> [gray]Run gut --help to see available commands[/gray]
+[wait:1000]`
 
     let demo = null
     let currentScenarios = []
@@ -544,6 +570,9 @@ $[delay:40] gut review
 - \`[wait:ms]\` - Pause for specified milliseconds
 - \`? text\` - Interactive question
 - \`: text\` - User's answer
+- \`[select:ms] question | opt1, opt2, opt3 | selectedIndex\` - Single select menu
+- \`[multiselect:ms] question | opt1, opt2, opt3 | idx1,idx2\` - Multi select menu
+- \`[progress:ms:percent] text\` - Progress bar animation
 
 ## Color Tags
 Use these tags in output text: [green], [red], [cyan], [yellow], [gray], [purple], [white], [bold]
@@ -560,16 +589,15 @@ $ npm install my-cli
 > [green]✓ Installed successfully[/green]
 [wait:500]
 
-# my-cli usage
-Basic usage
+# my-cli setup
+Interactive setup
 
 ---
-$ my-cli hello --name World
-[wait:300]
-> [cyan]Hello,[/cyan] [bold]World[/bold]!
-? Continue? (y/N)
-: y
-> [green]Done![/green]
+$ my-cli setup
+[select:1500] Choose framework: | React, Vue, Angular | 0
+[multiselect:2000] Select features: | TypeScript, ESLint, Prettier | 0,1
+[progress:2000:100] Setting up project...
+> [green]✓ Setup complete![/green]
 \`\`\`
 
 Now generate a scenario for: [DESCRIBE YOUR CLI TOOL HERE]`
