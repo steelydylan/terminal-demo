@@ -56,6 +56,11 @@
       color: #0d1117;
     }
     #play-btn:hover { filter: brightness(1.1); }
+    #pause-btn {
+      background: #f0883e;
+      color: #0d1117;
+    }
+    #pause-btn:hover { filter: brightness(1.1); }
     #reset-btn {
       background: #21262d;
       color: #c9d1d9;
@@ -110,6 +115,7 @@
     <div class="scenarios" id="scenarios"></div>
     <div class="controls">
       <button id="play-btn">Play All</button>
+      <button id="pause-btn">Pause</button>
       <button id="reset-btn">Reset</button>
       <button id="record-btn">🔴 Record GIF</button>
     </div>
@@ -220,6 +226,18 @@
 
     document.getElementById('play-btn').addEventListener('click', () => demo.play())
     document.getElementById('reset-btn').addEventListener('click', () => demo.reset())
+
+    // Pause/Resume toggle
+    const pauseBtn = document.getElementById('pause-btn')
+    pauseBtn.addEventListener('click', () => {
+      if (demo.isPaused()) {
+        demo.resume()
+        pauseBtn.textContent = 'Pause'
+      } else {
+        demo.pause()
+        pauseBtn.textContent = 'Resume'
+      }
+    })
 
     // GIF Recording
     let isRecording = false

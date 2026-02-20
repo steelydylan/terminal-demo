@@ -23,6 +23,8 @@ export class TerminalDemo implements TerminalDemoController {
 
   // State
   private running = false
+  private paused = false
+  private resumeResolver: (() => void) | null = null
   private currentLineEl: HTMLElement | null = null
 
   constructor(container: HTMLElement, options: TerminalDemoOptions) {
@@ -97,8 +99,27 @@ export class TerminalDemo implements TerminalDemoController {
     terminal.style.setProperty('--td-button-maximize', t.buttonMaximize)
   }
 
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms / this.options.speed))
+  private async sleep(ms: number): Promise<void> {
+    const adjustedMs = ms / this.options.speed
+    const startTime = Date.now()
+    let remainingTime = adjustedMs
+
+    while (remainingTime > 0) {
+      if (!this.running) return
+
+      if (this.paused) {
+        // Wait until resumed
+        await new Promise<void>((resolve) => {
+          this.resumeResolver = resolve
+        })
+        // After resume, continue with remaining time
+        continue
+      }
+
+      const sleepTime = Math.min(remainingTime, 50) // Check every 50ms for pause
+      await new Promise((resolve) => setTimeout(resolve, sleepTime))
+      remainingTime = adjustedMs - (Date.now() - startTime)
+    }
   }
 
   private createLine(): HTMLElement {
@@ -266,10 +287,20 @@ export class TerminalDemo implements TerminalDemoController {
 
   stop(): void {
     this.running = false
+    this.paused = false
+    if (this.resumeResolver) {
+      this.resumeResolver()
+      this.resumeResolver = null
+    }
   }
 
   reset(): void {
     this.running = false
+    this.paused = false
+    if (this.resumeResolver) {
+      this.resumeResolver()
+      this.resumeResolver = null
+    }
     if (this.bodyEl) this.bodyEl.innerHTML = ''
     this.showPrompt()
   }
@@ -278,8 +309,33 @@ export class TerminalDemo implements TerminalDemoController {
     return this.running
   }
 
+  isPaused(): boolean {
+    return this.paused
+  }
+
+  pause(): void {
+    if (this.running && !this.paused) {
+      this.paused = true
+    }
+  }
+
+  resume(): void {
+    if (this.paused) {
+      this.paused = false
+      if (this.resumeResolver) {
+        this.resumeResolver()
+        this.resumeResolver = null
+      }
+    }
+  }
+
   destroy(): void {
     this.running = false
+    this.paused = false
+    if (this.resumeResolver) {
+      this.resumeResolver()
+      this.resumeResolver = null
+    }
     this.container.innerHTML = ''
   }
 

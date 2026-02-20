@@ -27,6 +27,9 @@ export const TerminalDemoComponent = forwardRef<TerminalDemoRef, TerminalDemoPro
       stop: () => instanceRef.current?.stop(),
       reset: () => instanceRef.current?.reset(),
       isPlaying: () => instanceRef.current?.isPlaying() ?? false,
+      isPaused: () => instanceRef.current?.isPaused() ?? false,
+      pause: () => instanceRef.current?.pause(),
+      resume: () => instanceRef.current?.resume(),
       destroy: () => instanceRef.current?.destroy(),
       getTerminalElement: () => instanceRef.current?.getTerminalElement() ?? null
     }))

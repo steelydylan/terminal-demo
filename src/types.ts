@@ -84,6 +84,12 @@ export interface TerminalDemoController {
   reset(): void
   /** Check if currently playing */
   isPlaying(): boolean
+  /** Check if currently paused */
+  isPaused(): boolean
+  /** Pause playback */
+  pause(): void
+  /** Resume playback */
+  resume(): void
   /** Destroy and cleanup */
   destroy(): void
   /** Get the terminal DOM element for external use (e.g., recording) */
