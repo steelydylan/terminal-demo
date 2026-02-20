@@ -128,6 +128,34 @@
 
     const scenarios = [
       {
+        name: '✨ New Features',
+        description: 'Demo of select, multiselect, and progress',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'demo --features', delay: 60 },
+          { type: 'wait', ms: 400 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold][cyan]━━━ Select (Single Choice) ━━━[/cyan][/bold]' },
+          { type: 'output', text: '' },
+          { type: 'select', question: 'Choose your framework:', options: ['React', 'Vue', 'Angular', 'Svelte'], selected: 0, duration: 1800 },
+          { type: 'wait', ms: 500 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold][purple]━━━ Multiselect (Multiple Choice) ━━━[/purple][/bold]' },
+          { type: 'output', text: '' },
+          { type: 'multiselect', question: 'Select plugins to install:', options: ['TypeScript', 'ESLint', 'Prettier', 'Tailwind CSS'], selected: [0, 1, 2], duration: 3000 },
+          { type: 'wait', ms: 500 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold][yellow]━━━ Progress Bar ━━━[/yellow][/bold]' },
+          { type: 'output', text: '' },
+          { type: 'progress', text: 'Downloading packages...', duration: 1500, percent: 100 },
+          { type: 'progress', text: 'Building project...    ', duration: 2000, percent: 100 },
+          { type: 'progress', text: 'Running tests...       ', duration: 1000, percent: 100 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[green]✓ All done![/green]' },
+          { type: 'wait', ms: 1500 },
+        ]
+      },
+      {
         name: 'gut commit',
         description: 'AI-generated commit messages',
         steps: [
@@ -202,6 +230,28 @@
           { type: 'output', text: '[green]✓ src/commands/auth.ts[/green]' },
           { type: 'output', text: '  [gray]Clean implementation of auth flow[/gray]' },
           { type: 'wait', ms: 1500 },
+        ]
+      },
+      {
+        name: 'gut init',
+        description: 'Interactive project setup',
+        steps: [
+          { type: 'prompt' },
+          { type: 'command', text: 'gut init', delay: 60 },
+          { type: 'wait', ms: 400 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[bold]🚀 Initialize gut-cli[/bold]' },
+          { type: 'output', text: '' },
+          { type: 'select', question: 'Select AI provider:', options: ['OpenAI', 'Anthropic', 'Google AI', 'Local LLM'], selected: 1, duration: 1500 },
+          { type: 'wait', ms: 300 },
+          { type: 'multiselect', question: 'Select features:', options: ['Auto-commit', 'PR generation', 'Code review', 'Branch naming'], selected: [0, 1, 2], duration: 2500 },
+          { type: 'wait', ms: 300 },
+          { type: 'output', text: '' },
+          { type: 'progress', text: 'Installing dependencies...', duration: 2000, percent: 100 },
+          { type: 'output', text: '' },
+          { type: 'output', text: '[green]✓ gut-cli initialized successfully![/green]' },
+          { type: 'output', text: '[gray]Run `gut --help` to see available commands[/gray]' },
+          { type: 'wait', ms: 1000 },
         ]
       }
     ]

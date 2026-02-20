@@ -187,6 +187,130 @@ export class TerminalDemo implements TerminalDemoController {
     await this.sleep(100)
   }
 
+  private async showSelect(
+    question: string,
+    options: string[],
+    selected: number,
+    duration: number
+  ): Promise<void> {
+    // Show question line
+    const questionLine = this.createLine()
+    questionLine.innerHTML = `<span class="td-cyan">? ${question}</span>`
+
+    // Create option lines
+    const optionLines: HTMLElement[] = []
+    for (let i = 0; i < options.length; i++) {
+      const line = this.createLine()
+      line.className = 'td-line td-select-option'
+      optionLines.push(line)
+    }
+
+    // Animate selection
+    const totalSteps = Math.max(3, Math.abs(selected) + 2)
+    const stepDuration = duration / totalSteps
+    let current = 0
+
+    for (let step = 0; step <= selected; step++) {
+      if (!this.running) break
+      current = step
+      this.updateSelectOptions(optionLines, options, current)
+      await this.sleep(stepDuration)
+    }
+
+    // Final state: remove options, show selected value
+    for (const line of optionLines) {
+      line.remove()
+    }
+    questionLine.innerHTML = `<span class="td-cyan">? ${question}</span> <span class="td-green">${options[selected]}</span>`
+  }
+
+  private updateSelectOptions(lines: HTMLElement[], options: string[], current: number): void {
+    for (let i = 0; i < options.length; i++) {
+      const isSelected = i === current
+      const pointer = isSelected ? '❯' : ' '
+      const colorClass = isSelected ? 'td-cyan' : 'td-gray'
+      lines[i].innerHTML = `<span class="${colorClass}">  ${pointer} ${options[i]}</span>`
+    }
+  }
+
+  private async showMultiselect(
+    question: string,
+    options: string[],
+    selected: number[],
+    duration: number
+  ): Promise<void> {
+    // Show question line
+    const questionLine = this.createLine()
+    questionLine.innerHTML = `<span class="td-cyan">? ${question}</span> <span class="td-gray">(space to select, enter to confirm)</span>`
+
+    // Create option lines
+    const optionLines: HTMLElement[] = []
+    for (let i = 0; i < options.length; i++) {
+      const line = this.createLine()
+      line.className = 'td-line td-select-option'
+      optionLines.push(line)
+    }
+
+    // Animate: move through options and toggle selected ones
+    const stepDuration = duration / (options.length + selected.length + 1)
+    let current = 0
+    const checked = new Set<number>()
+
+    for (let i = 0; i < options.length; i++) {
+      if (!this.running) break
+      current = i
+      this.updateMultiselectOptions(optionLines, options, current, checked)
+      await this.sleep(stepDuration)
+
+      if (selected.includes(i)) {
+        checked.add(i)
+        this.updateMultiselectOptions(optionLines, options, current, checked)
+        await this.sleep(stepDuration)
+      }
+    }
+
+    // Final state: remove options, show selected values
+    for (const line of optionLines) {
+      line.remove()
+    }
+    const selectedValues = selected.map((i) => options[i]).join(', ')
+    questionLine.innerHTML = `<span class="td-cyan">? ${question}</span> <span class="td-green">${selectedValues}</span>`
+  }
+
+  private updateMultiselectOptions(
+    lines: HTMLElement[],
+    options: string[],
+    current: number,
+    checked: Set<number>
+  ): void {
+    for (let i = 0; i < options.length; i++) {
+      const isSelected = i === current
+      const isChecked = checked.has(i)
+      const pointer = isSelected ? '❯' : ' '
+      const checkbox = isChecked ? '◉' : '◯'
+      const colorClass = isChecked ? 'td-green' : isSelected ? 'td-cyan' : 'td-gray'
+      lines[i].innerHTML =
+        `<span class="${colorClass}">  ${pointer} ${checkbox} ${options[i]}</span>`
+    }
+  }
+
+  private async showProgress(text: string, duration: number, targetPercent: number): Promise<void> {
+    const line = this.createLine()
+    const barWidth = 20
+    const steps = 20
+    const stepDuration = duration / steps
+
+    for (let step = 0; step <= steps; step++) {
+      if (!this.running) break
+      const percent = Math.round((step / steps) * targetPercent)
+      const filled = Math.round((percent / 100) * barWidth)
+      const empty = barWidth - filled
+      const bar = '█'.repeat(filled) + '░'.repeat(empty)
+      line.innerHTML = `<span class="td-cyan">${text}</span> <span class="td-green">${bar}</span> <span class="td-white">${percent}%</span>`
+      await this.sleep(stepDuration)
+    }
+  }
+
   private scrollToBottom(): void {
     if (this.bodyEl) {
       this.bodyEl.scrollTop = this.bodyEl.scrollHeight
@@ -229,6 +353,20 @@ export class TerminalDemo implements TerminalDemoController {
         break
       case 'answer':
         await this.showAnswer(step.text)
+        break
+      case 'select':
+        await this.showSelect(step.question, step.options, step.selected, step.duration ?? 1500)
+        break
+      case 'multiselect':
+        await this.showMultiselect(
+          step.question,
+          step.options,
+          step.selected,
+          step.duration ?? 2000
+        )
+        break
+      case 'progress':
+        await this.showProgress(step.text, step.duration, step.percent ?? 100)
         break
     }
 

@@ -9,6 +9,15 @@ export type Step =
   | { type: 'wait'; ms: number }
   | { type: 'question'; text: string }
   | { type: 'answer'; text: string }
+  | { type: 'select'; question: string; options: string[]; selected: number; duration?: number }
+  | {
+      type: 'multiselect'
+      question: string
+      options: string[]
+      selected: number[]
+      duration?: number
+    }
+  | { type: 'progress'; text: string; duration: number; percent?: number }
 
 /**
  * A scenario containing multiple steps
