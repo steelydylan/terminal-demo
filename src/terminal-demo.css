@@ -76,7 +76,7 @@
 }
 
 .td-body::-webkit-scrollbar-track {
-  background: var(--td-header-background);
+  background: var(--td-background);
 }
 
 .td-body::-webkit-scrollbar-thumb {
