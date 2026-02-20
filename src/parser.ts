@@ -65,7 +65,16 @@ export function parseScenarioText(text: string): Scenario[] {
     }
 
     // Description (first non-empty line after #)
-    if (expectDescription && currentScenario && !trimmed.startsWith('$') && !trimmed.startsWith('>') && !trimmed.startsWith('?') && !trimmed.startsWith(':') && !trimmed.startsWith('[') && !trimmed.startsWith('---')) {
+    if (
+      expectDescription &&
+      currentScenario &&
+      !trimmed.startsWith('$') &&
+      !trimmed.startsWith('>') &&
+      !trimmed.startsWith('?') &&
+      !trimmed.startsWith(':') &&
+      !trimmed.startsWith('[') &&
+      !trimmed.startsWith('---')
+    ) {
       currentScenario.description = trimmed
       expectDescription = false
       continue
