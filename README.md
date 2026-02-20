@@ -96,6 +96,64 @@ function App() {
 }
 ```
 
+## Text Format (Easy Scenario Creation)
+
+Writing scenarios in JSON is tedious. Use the simple text format instead:
+
+```js
+import { parseScenarioText } from 'terminal-demo'
+
+const text = `
+# my-cli install
+Install the CLI tool
+
+---
+$ npm install my-cli
+[spinner:1500] Installing...
+> [green]✓ Installed successfully[/green]
+
+# my-cli usage
+Basic usage example
+
+---
+$ my-cli hello
+[wait:400]
+> [green]Hello, World![/green]
+[spinner:2000] Processing...
+? Continue? (y/N)
+: y
+> Done!
+`
+
+const scenarios = parseScenarioText(text)
+// Now use with TerminalDemo
+```
+
+### Text Format Syntax
+
+| Syntax | Description | Example |
+|--------|-------------|---------|
+| `# name` | New scenario with name | `# my-cli demo` |
+| `---` | Show prompt | `---` |
+| `$ command` | Type command (delay: 60ms) | `$ npm install` |
+| `$[delay:N] command` | Type command with custom delay | `$[delay:30] npm install` |
+| `> text` | Output line | `> [green]Success![/green]` |
+| `[spinner:ms] text` | Loading spinner | `[spinner:1500] Loading...` |
+| `[wait:ms]` | Pause | `[wait:500]` |
+| `? text` | Question prompt | `? Continue? (y/N)` |
+| `: text` | User answer | `: y` |
+
+The first line after `# name` (if not a command) becomes the scenario description.
+
+### Convert Back to Text
+
+```js
+import { stringifyScenarios } from 'terminal-demo'
+
+const text = stringifyScenarios(scenarios)
+console.log(text)
+```
+
 ## Step Types
 
 | Type | Description | Properties |

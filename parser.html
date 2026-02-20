@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>terminal-demo - Text Parser</title>
+  <link rel="stylesheet" href="./dist/style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #c9d1d9;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      color: #f0f6fc;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #8b949e;
+      font-size: 15px;
+    }
+    .guide {
+      background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .guide-title {
+      font-size: 12px;
+      color: #7ee787;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .guide-steps {
+      display: flex;
+      gap: 8px;
+    }
+    .guide-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+    .guide-step:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -12px;
+      top: 8px;
+      color: #30363d;
+      font-size: 14px;
+    }
+    .guide-num {
+      width: 24px;
+      height: 24px;
+      background: #30363d;
+      color: #7ee787;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .guide-step.active .guide-num {
+      background: #7ee787;
+      color: #0d1117;
+    }
+    .guide-text {
+      font-size: 11px;
+      color: #8b949e;
+      line-height: 1.3;
+    }
+    .guide-step.active .guide-text {
+      color: #c9d1d9;
+    }
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: #21262d;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-header {
+      background: #161b22;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-body {
+      padding: 16px;
+    }
+    textarea {
+      width: 100%;
+      height: 420px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+      padding: 16px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #7ee787;
+      color: #0d1117;
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+    .btn-secondary {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+    .btn-secondary:hover {
+      background: #3d444d;
+    }
+    #demo {
+      min-height: 300px;
+    }
+    .scenario-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .scenario-btn {
+      background: #30363d;
+      color: #c9d1d9;
+      border: 1px solid #444c56;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+    .scenario-btn:hover {
+      background: #444c56;
+    }
+    .demo-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .tab {
+      background: transparent;
+      color: #8b949e;
+      border: none;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .tab:hover {
+      color: #c9d1d9;
+    }
+    .tab.active {
+      background: #30363d;
+      color: #f0f6fc;
+    }
+    .error {
+      background: #f8514926;
+      border: 1px solid #f85149;
+      color: #f85149;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .dialog {
+      background: #21262d;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+    }
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #30363d;
+    }
+    .dialog-header h3 {
+      color: #f0f6fc;
+      font-size: 16px;
+      margin: 0;
+    }
+    .dialog-close {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .dialog-close:hover {
+      color: #f0f6fc;
+    }
+    .dialog-body {
+      padding: 20px;
+    }
+    .dialog-body table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .dialog-body td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #30363d;
+    }
+    .dialog-body td:first-child {
+      font-family: 'SF Mono', Monaco, monospace;
+      color: #7ee787;
+      white-space: nowrap;
+    }
+    .dialog-body td:last-child {
+      color: #c9d1d9;
+    }
+    .json-output {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+      min-height: 450px;
+      max-height: 600px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>terminal-demo Parser</h1>
+      <p>Write scenarios in simple text format and preview them instantly</p>
+    </div>
+
+    <div class="main">
+      <div class="panel">
+        <div class="panel-header">
+          <span>Text Input</span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" id="help-btn">?</button>
+            <button class="btn-secondary" id="copy-prompt">Copy Prompt</button>
+            <button class="btn-secondary" id="load-example">Load Example</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="guide">
+            <div class="guide-title">How to use</div>
+            <div class="guide-steps">
+              <div class="guide-step active">
+                <span class="guide-num">1</span>
+                <span class="guide-text">Copy Prompt<br>ボタンをクリック</span>
+              </div>
+              <div class="guide-step">
+                <span class="guide-num">2</span>
+                <span class="guide-text">Claude Code で<br>シナリオ生成</span>
+              </div>
+              <div class="guide-step">
+                <span class="guide-num">3</span>
+                <span class="guide-text">ここに貼り付け<br>プレビュー確認</span>
+              </div>
+            </div>
+          </div>
+          <textarea id="input" placeholder="# scenario name
+description
+
+---
+$ your-command
+[wait:400]
+> [green]Output text[/green]
+[spinner:1500] Loading...
+? Question? (y/N)
+: y
+> Done!"></textarea>
+          <div id="error"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>Preview</span>
+          <div class="tabs">
+            <button class="tab active" id="tab-terminal">Terminal</button>
+            <button class="tab" id="tab-json">JSON</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="preview-terminal">
+            <div id="demo"></div>
+            <div class="scenario-btns" id="scenarios"></div>
+            <div class="demo-controls">
+              <button class="btn-primary" id="play-btn">Play All</button>
+              <button class="btn-secondary" id="reset-btn">Reset</button>
+            </div>
+          </div>
+          <div id="preview-json" style="display: none;">
+            <div class="json-output" id="json-output"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Dialog -->
+  <div class="dialog-overlay" id="help-dialog" style="display: none;">
+    <div class="dialog">
+      <div class="dialog-header">
+        <h3>Syntax Reference</h3>
+        <button class="dialog-close" id="help-close">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <table>
+          <tr><td># name</td><td>New scenario</td></tr>
+          <tr><td>---</td><td>Show prompt</td></tr>
+          <tr><td>$ command</td><td>Type command (delay: 60ms)</td></tr>
+          <tr><td>$[delay:30] cmd</td><td>Type with custom delay</td></tr>
+          <tr><td>> text</td><td>Output line</td></tr>
+          <tr><td>[spinner:ms] text</td><td>Loading spinner</td></tr>
+          <tr><td>[wait:ms]</td><td>Pause</td></tr>
+          <tr><td>? text</td><td>Question</td></tr>
+          <tr><td>: text</td><td>Answer</td></tr>
+        </table>
+        <p style="margin-top: 16px; color: #8b949e; font-size: 13px;">
+          Color tags: [green], [red], [cyan], [yellow], [gray], [purple], [white], [bold]
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { TerminalDemo, parseScenarioText, stringifyScenarios } from './src/index.ts'
+
+    const exampleText = `# gut commit
+AI-generated commit messages
+
+---
+$ gut commit
+[wait:400]
+> [gray]No staged changes, staging all changes...[/gray]
+[spinner:1800] Generating commit message...
+>
+> [bold]Generated commit message:[/bold]
+>
+>   [green]feat(auth): add secure API key storage[/green]
+>   [gray]- Implement keytar for macOS Keychain[/gray]
+>   [gray]- Add environment variable fallback[/gray]
+>
+? Commit with this message? (y/N/e to edit)
+: y
+> [green]✓ Committed successfully[/green]
+[wait:1000]
+
+# gut pr
+Generate PR descriptions
+
+---
+$ gut pr --create
+[wait:400]
+[spinner:600] Analyzing branch...
+[spinner:1500] Generating PR description...
+>
+> [bold]📝 Generated PR:[/bold]
+>
+> [cyan]Title:[/cyan] [white]feat(auth): Add secure API key storage[/white]
+>
+> [cyan]Description:[/cyan]
+> [gray]──────────────────────────────────────────────────[/gray]
+> ## Summary
+> Implements secure API key storage using system keychain.
+>
+> ## Changes
+> - Added keytar integration
+> - Support for multiple AI providers
+> [gray]──────────────────────────────────────────────────[/gray]
+? Create PR? (y/N)
+: y
+[spinner:1200] Creating PR...
+> [green]✓ PR created successfully![/green]
+>
+> [green]🔗 https://github.com/user/repo/pull/42[/green]
+[wait:1000]
+
+# gut review
+AI code review
+
+---
+$[delay:40] gut review
+[wait:400]
+[spinner:2000] Analyzing changes...
+>
+> [bold]🔍 Code Review Results[/bold]
+>
+> [cyan]Overall:[/cyan] [green]Good[/green] - Well-structured code
+>
+> [yellow]⚠ src/lib/credentials.ts:45[/yellow]
+>   [gray]Consider adding error handling for keychain failures[/gray]
+>
+> [green]✓ src/commands/auth.ts[/green]
+>   [gray]Clean implementation of auth flow[/gray]
+[wait:1500]`
+
+    let demo = null
+    let currentScenarios = []
+
+    function updateDemo(scenarios) {
+      currentScenarios = scenarios
+      const demoEl = document.getElementById('demo')
+      const scenariosEl = document.getElementById('scenarios')
+      const jsonOutput = document.getElementById('json-output')
+
+      // Clear previous
+      demoEl.innerHTML = ''
+      scenariosEl.innerHTML = ''
+
+      if (scenarios.length === 0) {
+        jsonOutput.textContent = 'No scenarios parsed'
+        return
+      }
+
+      // Create new demo
+      demo = new TerminalDemo(demoEl, {
+        title: 'terminal-demo — zsh',
+        scenarios,
+        theme: 'dark',
+        windowStyle: 'macos',
+      })
+
+      // Create scenario buttons
+      scenarios.forEach((scenario, index) => {
+        const btn = document.createElement('button')
+        btn.className = 'scenario-btn'
+        btn.textContent = scenario.name
+        btn.title = scenario.description ?? ''
+        btn.addEventListener('click', () => demo.playScenario(index))
+        scenariosEl.appendChild(btn)
+      })
+
+      // Show JSON
+      jsonOutput.textContent = JSON.stringify(scenarios, null, 2)
+    }
+
+    function parseAndPreview() {
+      const input = document.getElementById('input').value
+      const errorEl = document.getElementById('error')
+
+      try {
+        const scenarios = parseScenarioText(input)
+        errorEl.innerHTML = ''
+        updateDemo(scenarios)
+      } catch (e) {
+        errorEl.innerHTML = `<div class="error">${e.message}</div>`
+      }
+    }
+
+    // Event listeners
+    document.getElementById('play-btn').addEventListener('click', () => demo?.play())
+    document.getElementById('reset-btn').addEventListener('click', () => demo?.reset())
+
+    document.getElementById('load-example').addEventListener('click', () => {
+      document.getElementById('input').value = exampleText
+      parseAndPreview()
+    })
+
+    document.getElementById('help-btn').addEventListener('click', () => {
+      document.getElementById('help-dialog').style.display = 'flex'
+    })
+
+    const promptTemplate = `Generate a terminal demo scenario for my CLI tool using this text format:
+
+## Syntax
+- \`# name\` - New scenario with name
+- \`---\` - Show command prompt
+- \`$ command\` - Type command (default delay: 60ms per char)
+- \`$[delay:N] command\` - Type command with custom delay (lower = faster)
+- \`> text\` - Output line
+- \`[spinner:ms] text\` - Loading spinner for specified milliseconds
+- \`[wait:ms]\` - Pause for specified milliseconds
+- \`? text\` - Interactive question
+- \`: text\` - User's answer
+
+## Color Tags
+Use these tags in output text: [green], [red], [cyan], [yellow], [gray], [purple], [white], [bold]
+Example: \`> [green]✓ Success![/green]\`
+
+## Example
+\`\`\`
+# my-cli install
+Install the CLI tool
+
+---
+$ npm install my-cli
+[spinner:1500] Installing dependencies...
+> [green]✓ Installed successfully[/green]
+[wait:500]
+
+# my-cli usage
+Basic usage
+
+---
+$ my-cli hello --name World
+[wait:300]
+> [cyan]Hello,[/cyan] [bold]World[/bold]!
+? Continue? (y/N)
+: y
+> [green]Done![/green]
+\`\`\`
+
+Now generate a scenario for: [DESCRIBE YOUR CLI TOOL HERE]`
+
+    document.getElementById('copy-prompt').addEventListener('click', () => {
+      navigator.clipboard.writeText(promptTemplate).then(() => {
+        const btn = document.getElementById('copy-prompt')
+        btn.textContent = 'Copied!'
+        setTimeout(() => btn.textContent = 'Copy Prompt', 2000)
+      })
+    })
+
+    document.getElementById('help-close').addEventListener('click', () => {
+      document.getElementById('help-dialog').style.display = 'none'
+    })
+
+    document.getElementById('help-dialog').addEventListener('click', (e) => {
+      if (e.target.id === 'help-dialog') {
+        document.getElementById('help-dialog').style.display = 'none'
+      }
+    })
+
+    document.getElementById('tab-terminal').addEventListener('click', () => {
+      document.getElementById('tab-terminal').classList.add('active')
+      document.getElementById('tab-json').classList.remove('active')
+      document.getElementById('preview-terminal').style.display = 'block'
+      document.getElementById('preview-json').style.display = 'none'
+    })
+
+    document.getElementById('tab-json').addEventListener('click', () => {
+      document.getElementById('tab-json').classList.add('active')
+      document.getElementById('tab-terminal').classList.remove('active')
+      document.getElementById('preview-json').style.display = 'block'
+      document.getElementById('preview-terminal').style.display = 'none'
+    })
+
+    // Auto-parse on input (debounced)
+    let timeout
+    document.getElementById('input').addEventListener('input', () => {
+      clearTimeout(timeout)
+      timeout = setTimeout(parseAndPreview, 500)
+    })
+
+    // Load example on start
+    document.getElementById('input').value = exampleText
+    parseAndPreview()
+  </script>
+</body>
+</html>
