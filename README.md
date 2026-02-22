@@ -26,7 +26,71 @@ Animated terminal demo component for showcasing CLI tools. Perfect for landing p
 npm install terminal-demo
 ```
 
-## Usage
+## CLI Usage
+
+Play terminal demos directly in your terminal:
+
+```bash
+# Play a scenario file
+npx terminal-demo play demo.md
+
+# With options
+npx terminal-demo play demo.md --speed 2 --clear
+
+# Show help
+npx terminal-demo help
+```
+
+### CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `--speed <n>` | Playback speed multiplier (default: 1) |
+| `--prompt <text>` | Custom prompt text (default: ~) |
+| `--symbol <char>` | Custom prompt symbol (default: ❯) |
+| `--clear` | Clear terminal before starting |
+
+### Example scenario file (demo.md)
+
+```markdown
+# install
+Install the CLI
+
+---
+$ npm install my-cli
+[spinner:1500] Installing...
+> [green]✓ Installed successfully[/green]
+
+# setup
+Interactive setup
+
+---
+$ my-cli init
+[select:1500] Choose framework: | React, Vue, Angular | 0
+[progress:2000:100] Setting up...
+> [green]✓ Done![/green]
+```
+
+## Node.js API
+
+Use `TerminalPlayer` programmatically in Node.js:
+
+```ts
+import { TerminalPlayer, parseScenarioText } from 'terminal-demo/node'
+
+const text = `
+# demo
+---
+$ echo hello
+> [green]Hello![/green]
+`
+
+const scenarios = parseScenarioText(text)
+const player = new TerminalPlayer({ speed: 2 })
+await player.play(scenarios)
+```
+
+## Browser Usage
 
 ### Vanilla JavaScript
 
