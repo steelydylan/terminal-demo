@@ -75,18 +75,6 @@ npm install -g svg-term-cli
 svg-term --in output.cast --out output.svg --window
 ```
 
-#### Converting to GIF
-
-Use [agg](https://github.com/asciinema/agg) (asciinema GIF generator) to convert `.cast` files to GIF:
-
-```bash
-# Install agg (Rust required)
-cargo install agg
-
-# Convert to GIF
-agg output.cast output.gif
-```
-
 ### Example scenario file (demo.md)
 
 ```markdown
