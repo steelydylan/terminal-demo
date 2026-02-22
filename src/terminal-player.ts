@@ -55,6 +55,13 @@ function applyColors(text: string): string {
     .replace(/\[\/bold\]/g, ANSI.reset)
 }
 
+/**
+ * Print a line with CRLF for recording compatibility
+ */
+function println(text: string = ''): void {
+  process.stdout.write(text + '\r\n')
+}
+
 export class TerminalPlayer {
   private promptText: string
   private promptSymbol: string
@@ -126,8 +133,9 @@ export class TerminalPlayer {
     const empty = width - filled
     const bar = `${ANSI.green}${'█'.repeat(filled)}${ANSI.gray}${'░'.repeat(empty)}${ANSI.reset}`
     process.stdout.write(
-      `${ANSI.moveToStart}${ANSI.clearLine}${applyColors(text)} ${bar} ${targetPercent}%\n`
+      `${ANSI.moveToStart}${ANSI.clearLine}${applyColors(text)} ${bar} ${targetPercent}%`
     )
+    println()
     process.stdout.write(ANSI.showCursor)
   }
 
@@ -140,7 +148,7 @@ export class TerminalPlayer {
     const stepDuration = duration / (options.length + 1)
 
     process.stdout.write(ANSI.hideCursor)
-    console.log(`${ANSI.cyan}?${ANSI.reset} ${question}`)
+    println(`${ANSI.cyan}?${ANSI.reset} ${question}`)
 
     // Animate selection
     for (let current = 0; current <= selectedIndex; current++) {
@@ -150,7 +158,7 @@ export class TerminalPlayer {
       for (let i = 0; i < options.length; i++) {
         const prefix = i === current ? `${ANSI.cyan}❯${ANSI.reset}` : ' '
         const style = i === current ? ANSI.cyan : ANSI.dim
-        console.log(`${prefix} ${style}${options[i]}${ANSI.reset}`)
+        println(`${prefix} ${style}${options[i]}${ANSI.reset}`)
       }
 
       if (current < selectedIndex) {
@@ -164,11 +172,11 @@ export class TerminalPlayer {
     await sleep(stepDuration)
     process.stdout.write(ANSI.moveUp(options.length))
     for (let i = 0; i < options.length; i++) {
-      process.stdout.write(`${ANSI.clearLine}\n`)
+      process.stdout.write(`${ANSI.clearLine}\r\n`)
     }
     process.stdout.write(ANSI.moveUp(options.length + 1))
     process.stdout.write(ANSI.clearLine)
-    console.log(
+    println(
       `${ANSI.cyan}?${ANSI.reset} ${question} ${ANSI.cyan}${options[selectedIndex]}${ANSI.reset}`
     )
 
@@ -185,7 +193,7 @@ export class TerminalPlayer {
     const selected = new Set<number>()
 
     process.stdout.write(ANSI.hideCursor)
-    console.log(`${ANSI.cyan}?${ANSI.reset} ${question}`)
+    println(`${ANSI.cyan}?${ANSI.reset} ${question}`)
 
     // Draw initial options
     const drawOptions = (currentIndex: number) => {
@@ -194,7 +202,7 @@ export class TerminalPlayer {
         const prefix = i === currentIndex ? `${ANSI.cyan}❯${ANSI.reset}` : ' '
         const checkbox = isSelected ? `${ANSI.green}◉${ANSI.reset}` : `${ANSI.dim}○${ANSI.reset}`
         const style = i === currentIndex ? '' : ANSI.dim
-        console.log(`${prefix} ${checkbox} ${style}${options[i]}${ANSI.reset}`)
+        println(`${prefix} ${checkbox} ${style}${options[i]}${ANSI.reset}`)
       }
     }
 
@@ -213,13 +221,13 @@ export class TerminalPlayer {
     await sleep(stepDuration)
     process.stdout.write(ANSI.moveUp(options.length))
     for (let i = 0; i < options.length; i++) {
-      process.stdout.write(`${ANSI.clearLine}\n`)
+      process.stdout.write(`${ANSI.clearLine}\r\n`)
     }
     process.stdout.write(ANSI.moveUp(options.length + 1))
     process.stdout.write(ANSI.clearLine)
 
     const selectedNames = selectedIndices.map((i) => options[i]).join(', ')
-    console.log(`${ANSI.cyan}?${ANSI.reset} ${question} ${ANSI.cyan}${selectedNames}${ANSI.reset}`)
+    println(`${ANSI.cyan}?${ANSI.reset} ${question} ${ANSI.cyan}${selectedNames}${ANSI.reset}`)
 
     process.stdout.write(ANSI.showCursor)
   }
@@ -234,11 +242,11 @@ export class TerminalPlayer {
 
       case 'command':
         await this.typeText(step.text, step.delay ?? 60)
-        console.log()
+        println()
         break
 
       case 'output':
-        console.log(applyColors(step.text))
+        println(applyColors(step.text))
         break
 
       case 'spinner':
@@ -255,7 +263,7 @@ export class TerminalPlayer {
 
       case 'answer':
         await this.typeText(step.text, 80)
-        console.log()
+        println()
         break
 
       case 'select':

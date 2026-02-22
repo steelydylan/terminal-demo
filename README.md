@@ -49,6 +49,43 @@ npx terminal-demo help
 | `--prompt <text>` | Custom prompt text (default: ~) |
 | `--symbol <char>` | Custom prompt symbol (default: ❯) |
 | `--clear` | Clear terminal before starting |
+| `--record <file>` | Record to asciinema .cast file |
+
+### Recording Demos
+
+Record terminal demos to [asciinema](https://asciinema.org/) `.cast` format for sharing or converting to GIF/SVG:
+
+```bash
+# Record a demo
+npx terminal-demo play demo.md --record output.cast
+
+# Record at normal speed (recommended for recordings)
+npx terminal-demo play demo.md --record output.cast --speed 1
+```
+
+#### Converting to SVG
+
+Use [svg-term-cli](https://github.com/marionebl/svg-term-cli) to convert `.cast` files to SVG:
+
+```bash
+# Install svg-term
+npm install -g svg-term-cli
+
+# Convert to SVG with window chrome
+svg-term --in output.cast --out output.svg --window
+```
+
+#### Converting to GIF
+
+Use [agg](https://github.com/asciinema/agg) (asciinema GIF generator) to convert `.cast` files to GIF:
+
+```bash
+# Install agg (Rust required)
+cargo install agg
+
+# Convert to GIF
+agg output.cast output.gif
+```
 
 ### Example scenario file (demo.md)
 

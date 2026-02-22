@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
+import { AsciinemaRecorder } from './asciinema-recorder.js'
 import { parseScenarioText } from './parser.js'
 import { TerminalPlayer } from './terminal-player.js'
 
@@ -16,11 +17,13 @@ Options:
   --prompt <text>   Custom prompt text (default: ~)
   --symbol <char>   Custom prompt symbol (default: ❯)
   --clear           Clear terminal before starting
+  --record <file>   Record output to asciinema .cast file
 
 Examples:
   terminal-demo play demo.txt
   terminal-demo play demo.txt --speed 2
   terminal-demo play demo.txt --clear
+  terminal-demo play demo.txt --record output.cast
 `
 
 const VERSION = '0.1.8'
@@ -32,6 +35,7 @@ interface ParsedArgs {
   prompt: string
   symbol: string
   clear: boolean
+  record?: string
 }
 
 function parseArgs(args: string[]): ParsedArgs {
@@ -72,6 +76,9 @@ function parseArgs(args: string[]): ParsedArgs {
     } else if (arg === '--clear') {
       result.clear = true
       i++
+    } else if (arg === '--record' && i + 1 < args.length) {
+      result.record = args[i + 1]
+      i += 2
     } else {
       i++
     }
@@ -140,9 +147,23 @@ async function main(): Promise<void> {
         speed: args.speed
       })
 
+      // Set up recorder if --record is specified
+      let recorder: AsciinemaRecorder | null = null
+      if (args.record) {
+        recorder = new AsciinemaRecorder({
+          title: `terminal-demo: ${args.file}`
+        })
+      }
+
       // Handle Ctrl+C
       process.on('SIGINT', () => {
         player.stop()
+        if (recorder) {
+          recorder.stop()
+          const recordPath = resolve(process.cwd(), args.record!)
+          recorder.save(recordPath)
+          console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
+        }
         console.log('\n')
         process.exit(0)
       })
@@ -155,7 +176,21 @@ async function main(): Promise<void> {
         clearTerminal()
       }
 
+      // Start recording after clear (so clear is not recorded)
+      if (recorder) {
+        recorder.start()
+      }
+
       await player.play(scenarios)
+
+      // Stop recording and save
+      if (recorder) {
+        recorder.stop()
+        const recordPath = resolve(process.cwd(), args.record!)
+        recorder.save(recordPath)
+        console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
+        console.log(`\x1b[90m  Play with: asciinema play ${args.record}\x1b[0m`)
+      }
       break
     }
   }
