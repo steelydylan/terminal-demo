@@ -45,7 +45,7 @@ export class AsciinemaRecorder {
     this.events.push({
       time: 0,
       type: 'o',
-      data: '\x1b[2J\x1b[H'  // Clear screen and move to home position
+      data: '\x1b[2J\x1b[H' // Clear screen and move to home position
     })
     process.stdout.write = ((
       chunk: string | Uint8Array,
@@ -100,7 +100,7 @@ export class AsciinemaRecorder {
       lines.push(JSON.stringify([event.time, event.type, event.data]))
     }
 
-    writeFileSync(filePath, lines.join('\n') + '\n', 'utf-8')
+    writeFileSync(filePath, `${lines.join('\n')}\n`, 'utf-8')
   }
 
   getEvents(): AsciinemaEvent[] {

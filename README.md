@@ -1,6 +1,6 @@
 # terminal-demo
 
-![demo](https://storage.googleapis.com/zenn-user-upload/fa7b7c71ec82-20260219.gif)
+![demo](./demo.svg)
 
 Animated terminal demo component for showcasing CLI tools. Perfect for landing pages, documentation, and product demos.
 

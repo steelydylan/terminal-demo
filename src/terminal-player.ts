@@ -59,7 +59,7 @@ function applyColors(text: string): string {
  * Print a line with CRLF for recording compatibility
  */
 function println(text: string = ''): void {
-  process.stdout.write(text + '\r\n')
+  process.stdout.write(`${text}\r\n`)
 }
 
 export class TerminalPlayer {

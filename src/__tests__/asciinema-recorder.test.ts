@@ -1,5 +1,5 @@
-import { unlinkSync, readFileSync } from 'node:fs'
-import { describe, it, expect, afterEach } from 'vitest'
+import { readFileSync, unlinkSync } from 'node:fs'
+import { afterEach, describe, expect, it } from 'vitest'
 import { AsciinemaRecorder } from '../asciinema-recorder.js'
 
 describe('AsciinemaRecorder', () => {
@@ -22,10 +22,12 @@ describe('AsciinemaRecorder', () => {
     recorder.stop()
 
     const events = recorder.getEvents()
-    expect(events.length).toBe(2)
-    expect(events[0].data).toBe('Hello')
-    expect(events[1].data).toBe(' World')
-    expect(events[0].type).toBe('o')
+    // First event is clear screen, then Hello, then World
+    expect(events.length).toBe(3)
+    expect(events[0].data).toBe('\x1b[2J\x1b[H') // Clear screen
+    expect(events[1].data).toBe('Hello')
+    expect(events[2].data).toBe(' World')
+    expect(events[1].type).toBe('o')
   })
 
   it('should record timestamps', async () => {
@@ -38,9 +40,11 @@ describe('AsciinemaRecorder', () => {
     recorder.stop()
 
     const events = recorder.getEvents()
-    expect(events.length).toBe(2)
-    expect(events[0].time).toBe(0)
-    expect(events[1].time).toBeGreaterThan(0.05)
+    // First event is clear screen, then First, then Second
+    expect(events.length).toBe(3)
+    expect(events[0].time).toBe(0) // Clear screen at time 0
+    expect(events[1].time).toBe(0) // First is also at ~0
+    expect(events[2].time).toBeGreaterThan(0.05) // Second is after delay
   })
 
   it('should save to .cast file in correct format', () => {
@@ -65,8 +69,13 @@ describe('AsciinemaRecorder', () => {
     expect(header.height).toBe(30)
     expect(header.title).toBe('Test Recording')
 
-    // Second line is event
-    const event = JSON.parse(lines[1])
+    // Second line is clear screen event
+    const clearEvent = JSON.parse(lines[1])
+    expect(clearEvent[1]).toBe('o')
+    expect(clearEvent[2]).toBe('\x1b[2J\x1b[H')
+
+    // Third line is actual output event
+    const event = JSON.parse(lines[2])
     expect(event[1]).toBe('o')
     expect(event[2]).toBe('Test output')
   })
@@ -80,8 +89,10 @@ describe('AsciinemaRecorder', () => {
     process.stdout.write('After stop')
 
     const events = recorder.getEvents()
-    expect(events.length).toBe(1)
-    expect(events[0].data).toBe('Before stop')
+    // First event is clear screen, second is Before stop
+    expect(events.length).toBe(2)
+    expect(events[0].data).toBe('\x1b[2J\x1b[H')
+    expect(events[1].data).toBe('Before stop')
   })
 
   it('should calculate duration correctly', async () => {
