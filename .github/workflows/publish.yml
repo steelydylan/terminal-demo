@@ -71,6 +71,25 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
+      - name: Install gut-cli
+        if: ${{ inputs.dry_run != true }}
+        run: npm install -g gut-cli
+
+      - name: Generate changelog
+        if: ${{ inputs.dry_run != true }}
+        env:
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+        run: |
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            # First release, use initial commit
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "Generating changelog from $PREV_TAG to v${VERSION}"
+          gut changelog "$PREV_TAG" "v${VERSION}" --provider gemini > changelog.md || echo "## v${VERSION}" > changelog.md
+          cat changelog.md
+
       - name: Create GitHub Release
         if: ${{ inputs.dry_run != true }}
         env:
@@ -78,7 +97,7 @@ jobs:
         run: |
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
-            --generate-notes
+            --notes-file changelog.md
 
       - name: Publish (dry run)
         if: ${{ inputs.dry_run == true }}
