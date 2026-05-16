@@ -1,9 +1,14 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { exec } from 'node:child_process'
+import { readFileSync, existsSync, unlinkSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { resolve, join } from 'node:path'
 import { createInterface } from 'node:readline'
+import { promisify } from 'node:util'
 import { AsciinemaRecorder } from './asciinema-recorder.js'
 import { parseScenarioText } from './parser.js'
 import { TerminalPlayer } from './terminal-player.js'
+
+const execAsync = promisify(exec)
 
 const HELP = `
 terminal-demo - Play terminal demo scenarios in your terminal
@@ -18,12 +23,14 @@ Options:
   --symbol <char>   Custom prompt symbol (default: ❯)
   --clear           Clear terminal before starting
   --record <file>   Record output to asciinema .cast file
+  --mp4 <file>      Record output and convert to .mp4 video
 
 Examples:
   terminal-demo play demo.txt
   terminal-demo play demo.txt --speed 2
   terminal-demo play demo.txt --clear
   terminal-demo play demo.txt --record output.cast
+  terminal-demo play demo.txt --mp4 output.mp4
 `
 
 const VERSION = '0.1.8'
@@ -36,6 +43,7 @@ interface ParsedArgs {
   symbol: string
   clear: boolean
   record?: string
+  mp4?: string
 }
 
 function parseArgs(args: string[]): ParsedArgs {
@@ -78,6 +86,9 @@ function parseArgs(args: string[]): ParsedArgs {
       i++
     } else if (arg === '--record' && i + 1 < args.length) {
       result.record = args[i + 1]
+      i += 2
+    } else if (arg === '--mp4' && i + 1 < args.length) {
+      result.mp4 = args[i + 1]
       i += 2
     } else {
       i++
@@ -147,11 +158,28 @@ async function main(): Promise<void> {
         speed: args.speed
       })
 
-      // Set up recorder if --record is specified
+      // Setup MP4 Temp Path Injection
+      let tempCastFile: string | undefined
+      let targetCastFile: string | undefined
+      if (args.mp4) {
+        if (args.record) {
+          // user asked for BOTH .cast and .mp4. Use their path, don't delete later.
+          targetCastFile = resolve(process.cwd(), args.record)
+        } else {
+          // user ONLY asked for .mp4. Create a temp file to delete later.
+          tempCastFile = join(tmpdir(), `terminal-demo-${Date.now()}.cast`)
+          args.record = tempCastFile 
+          targetCastFile = tempCastFile
+        }
+      }
+
+      // Set up recorder if --record (or --mp4 via hijack) is specified
       let recorder: AsciinemaRecorder | null = null
       if (args.record) {
         recorder = new AsciinemaRecorder({
-          title: `terminal-demo: ${args.file}`
+          title: `terminal-demo: ${args.file}`,
+          width: args.mp4 ? 80 : undefined,
+          height: args.mp4 ? 24 : undefined
         })
       }
 
@@ -162,7 +190,13 @@ async function main(): Promise<void> {
           recorder.stop()
           const recordPath = resolve(process.cwd(), args.record!)
           recorder.save(recordPath)
-          console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
+          
+          if (args.mp4 && tempCastFile && existsSync(tempCastFile)) {
+             unlinkSync(tempCastFile)
+             console.log(`\n\x1b[33m⚠\x1b[0m Interrupted. MP4 conversion cancelled.`)
+          } else if (!args.mp4) {
+             console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
+          }
         }
         console.log('\n')
         process.exit(0)
@@ -183,13 +217,59 @@ async function main(): Promise<void> {
 
       await player.play(scenarios)
 
-      // Stop recording and save
+      // Stop recording and save / convert
       if (recorder) {
         recorder.stop()
         const recordPath = resolve(process.cwd(), args.record!)
         recorder.save(recordPath)
-        console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
-        console.log(`\x1b[90m  Play with: asciinema play ${args.record}\x1b[0m`)
+        
+        if (args.mp4 && tempCastFile) {
+          console.log(`\n Converting recording to .mp4...`)
+          let tempGifFile: string | undefined
+          try {
+            // 1. Check for required dependencies
+            try {
+              await execAsync('agg --version')
+              await execAsync('ffmpeg -version')
+            } catch (depsError) {
+              throw new Error(
+                'Missing required dependencies.\n' +
+                '  To export to .mp4, you must have these installed on your system:\n' +
+                '  1. agg (https://github.com/asciinema/agg)\n' +
+                '  2. ffmpeg (https://ffmpeg.org/)'
+              )
+            }
+
+            const mp4Path = resolve(process.cwd(), args.mp4)
+            tempGifFile = join(tmpdir(), `terminal-demo-${Date.now()}.gif`)
+
+            // 2. Convert .cast to .gif using agg
+            console.log(`\x1b[90m  Step 1/2: Generating frames...\x1b[0m`)
+            await execAsync(`agg --font-size 18 ${targetCastFile} ${tempGifFile}`)
+
+            // 3. Convert .gif to .mp4 using ffmpeg (Uses mp4Path here to clear the warning)
+            console.log(`\x1b[90m  Step 2/2: Encoding video...\x1b[0m`)
+            await execAsync(`ffmpeg -y -i ${tempGifFile} -movflags faststart -pix_fmt yuv420p -crf 15 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ${mp4Path}`)
+
+            console.log(`\x1b[32m✓\x1b[0m Video successfully saved to ${args.mp4}`)
+
+          } catch (err: any) {
+            console.error(`\x1b[31mError converting to .mp4:\x1b[0m\n${err.message}`)
+          } finally {
+            // Cleanup temporary files gracefully
+            if (tempCastFile && existsSync(tempCastFile)) {
+              unlinkSync(tempCastFile)
+            }
+            if (tempGifFile && existsSync(tempGifFile)) {
+              unlinkSync(tempGifFile)
+            }
+          }
+        } 
+        else 
+        {
+          console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
+          console.log(`\x1b[90m  Play with: asciinema play ${args.record}\x1b[0m`)
+        }
       }
       break
     }
