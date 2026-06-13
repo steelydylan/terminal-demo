@@ -168,7 +168,7 @@ async function main(): Promise<void> {
         } else {
           // user ONLY asked for .mp4. Create a temp file to delete later.
           tempCastFile = join(tmpdir(), `terminal-demo-${Date.now()}.cast`)
-          args.record = tempCastFile 
+          args.record = tempCastFile
           targetCastFile = tempCastFile
         }
       }
@@ -190,12 +190,12 @@ async function main(): Promise<void> {
           recorder.stop()
           const recordPath = resolve(process.cwd(), args.record!)
           recorder.save(recordPath)
-          
+
           if (args.mp4 && tempCastFile && existsSync(tempCastFile)) {
-             unlinkSync(tempCastFile)
-             console.log(`\n\x1b[33m⚠\x1b[0m Interrupted. MP4 conversion cancelled.`)
+            unlinkSync(tempCastFile)
+            console.log(`\n\x1b[33m⚠\x1b[0m Interrupted. MP4 conversion cancelled.`)
           } else if (!args.mp4) {
-             console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
+            console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
           }
         }
         console.log('\n')
@@ -222,7 +222,7 @@ async function main(): Promise<void> {
         recorder.stop()
         const recordPath = resolve(process.cwd(), args.record!)
         recorder.save(recordPath)
-        
+
         if (args.mp4 && tempCastFile) {
           console.log(`\n Converting recording to .mp4...`)
           let tempGifFile: string | undefined
@@ -231,7 +231,7 @@ async function main(): Promise<void> {
             try {
               await execAsync('agg --version')
               await execAsync('ffmpeg -version')
-            } catch (depsError) {
+            } catch (_depsError) {
               throw new Error(
                 'Missing required dependencies.\n' +
                 '  To export to .mp4, you must have these installed on your system:\n' +
@@ -252,9 +252,9 @@ async function main(): Promise<void> {
             await execAsync(`ffmpeg -y -i ${tempGifFile} -movflags faststart -pix_fmt yuv420p -crf 15 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ${mp4Path}`)
 
             console.log(`\x1b[32m✓\x1b[0m Video successfully saved to ${args.mp4}`)
-
-          } catch (err: any) {
-            console.error(`\x1b[31mError converting to .mp4:\x1b[0m\n${err.message}`)
+          } catch (err: unknown) {
+            const error = err instanceof Error ? err : new Error(String(err))
+            console.error(`\x1b[31mError converting to .mp4:\x1b[0m\n${error.message}`)
           } finally {
             // Cleanup temporary files gracefully
             if (tempCastFile && existsSync(tempCastFile)) {
@@ -264,9 +264,7 @@ async function main(): Promise<void> {
               unlinkSync(tempGifFile)
             }
           }
-        } 
-        else 
-        {
+        } else {
           console.log(`\n\x1b[32m✓\x1b[0m Recording saved to ${args.record}`)
           console.log(`\x1b[90m  Play with: asciinema play ${args.record}\x1b[0m`)
         }
