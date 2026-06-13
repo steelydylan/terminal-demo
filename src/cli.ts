@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process'
+import { execFile } from 'node:child_process'
 import { existsSync, readFileSync, unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -8,7 +8,7 @@ import { AsciinemaRecorder } from './asciinema-recorder.js'
 import { parseScenarioText } from './parser.js'
 import { TerminalPlayer } from './terminal-player.js'
 
-const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 const HELP = `
 terminal-demo - Play terminal demo scenarios in your terminal
@@ -223,14 +223,14 @@ async function main(): Promise<void> {
         const recordPath = resolve(process.cwd(), args.record!)
         recorder.save(recordPath)
 
-        if (args.mp4 && tempCastFile) {
+        if (args.mp4 && targetCastFile) {
           console.log(`\n Converting recording to .mp4...`)
           let tempGifFile: string | undefined
           try {
             // 1. Check for required dependencies
             try {
-              await execAsync('agg --version')
-              await execAsync('ffmpeg -version')
+              await execFileAsync('agg', ['--version'])
+              await execFileAsync('ffmpeg', ['-version'])
             } catch (_depsError) {
               throw new Error(
                 'Missing required dependencies.\n' +
@@ -244,14 +244,27 @@ async function main(): Promise<void> {
             tempGifFile = join(tmpdir(), `terminal-demo-${Date.now()}.gif`)
 
             // 2. Convert .cast to .gif using agg
+            // Arguments are passed as an array (no shell) so paths with spaces
+            // or shell metacharacters are handled safely.
             console.log(`\x1b[90m  Step 1/2: Generating frames...\x1b[0m`)
-            await execAsync(`agg --font-size 18 ${targetCastFile} ${tempGifFile}`)
+            await execFileAsync('agg', ['--font-size', '18', targetCastFile, tempGifFile])
 
-            // 3. Convert .gif to .mp4 using ffmpeg (Uses mp4Path here to clear the warning)
+            // 3. Convert .gif to .mp4 using ffmpeg
             console.log(`\x1b[90m  Step 2/2: Encoding video...\x1b[0m`)
-            await execAsync(
-              `ffmpeg -y -i ${tempGifFile} -movflags faststart -pix_fmt yuv420p -crf 15 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ${mp4Path}`
-            )
+            await execFileAsync('ffmpeg', [
+              '-y',
+              '-i',
+              tempGifFile,
+              '-movflags',
+              'faststart',
+              '-pix_fmt',
+              'yuv420p',
+              '-crf',
+              '15',
+              '-vf',
+              'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+              mp4Path
+            ])
 
             console.log(`\x1b[32m✓\x1b[0m Video successfully saved to ${args.mp4}`)
           } catch (err: unknown) {
