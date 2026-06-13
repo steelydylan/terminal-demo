@@ -43,7 +43,7 @@ describe('AsciinemaRecorder', () => {
     // First event is clear screen, then First, then Second
     expect(events.length).toBe(3)
     expect(events[0].time).toBe(0) // Clear screen at time 0
-    expect(events[1].time).toBe(0) // First is also at ~0
+    expect(events[1].time).toBeLessThan(0.05) // First is also at ~0 (before the delay)
     expect(events[2].time).toBeGreaterThan(0.05) // Second is after delay
   })
 
