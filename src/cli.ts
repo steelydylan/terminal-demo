@@ -1,7 +1,7 @@
 import { exec } from 'node:child_process'
-import { readFileSync, existsSync, unlinkSync } from 'node:fs'
+import { existsSync, readFileSync, unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { resolve, join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { promisify } from 'node:util'
 import { AsciinemaRecorder } from './asciinema-recorder.js'
@@ -234,9 +234,9 @@ async function main(): Promise<void> {
             } catch (_depsError) {
               throw new Error(
                 'Missing required dependencies.\n' +
-                '  To export to .mp4, you must have these installed on your system:\n' +
-                '  1. agg (https://github.com/asciinema/agg)\n' +
-                '  2. ffmpeg (https://ffmpeg.org/)'
+                  '  To export to .mp4, you must have these installed on your system:\n' +
+                  '  1. agg (https://github.com/asciinema/agg)\n' +
+                  '  2. ffmpeg (https://ffmpeg.org/)'
               )
             }
 
@@ -249,7 +249,9 @@ async function main(): Promise<void> {
 
             // 3. Convert .gif to .mp4 using ffmpeg (Uses mp4Path here to clear the warning)
             console.log(`\x1b[90m  Step 2/2: Encoding video...\x1b[0m`)
-            await execAsync(`ffmpeg -y -i ${tempGifFile} -movflags faststart -pix_fmt yuv420p -crf 15 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ${mp4Path}`)
+            await execAsync(
+              `ffmpeg -y -i ${tempGifFile} -movflags faststart -pix_fmt yuv420p -crf 15 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ${mp4Path}`
+            )
 
             console.log(`\x1b[32m✓\x1b[0m Video successfully saved to ${args.mp4}`)
           } catch (err: unknown) {
